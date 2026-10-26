@@ -9,8 +9,8 @@ Writes build/themes/:
   Equinox-hdpi/         xfwm4 at 1.5x, and Equinox-dark-hdpi
   Equinox-xhdpi/        xfwm4 at 2x, and Equinox-dark-xhdpi
 
-and build/icons/Equinox/, an icon theme that inherits Adwaita and replaces
-nm-applet's wifi icons (22x22 bitmaps) with crisp symbolic signal bars.
+and build/icons/Equinox/, an icon theme that inherits Adwaita and swaps in
+Omarchy's bar icons for the panel: wifi, volume, microphone and reboot.
 
 xfwm4 doesn't scale its themes, so the window scaling factor picks the
 variant: Equinox-xhdpi for 2x. equinox-mode does that automatically.
@@ -343,7 +343,7 @@ class Frame:
 
 ICON_INDEX = """[Icon Theme]
 Name={name}
-Comment=Adwaita with crisp {name} status icons
+Comment=Adwaita with Omarchy's panel icons
 Inherits=Adwaita,hicolor
 Directories=scalable/status
 
@@ -356,26 +356,17 @@ Context=Status
 """
 
 
-def signal_bars(level):
-    """Wifi signal as four rising bars on the 16px symbolic grid, the old
-    nm-applet design: `level` bars lit, the rest at 30%. Symbolic, so GTK
-    paints it in the panel's text color like the other tray icons."""
-    rects = []
-    for i, height in enumerate((5, 8, 11, 14)):
-        dim = "" if i < level else ' opacity="0.3"'
-        rects.append(f'<rect x="{0.5 + 4 * i:g}" y="{15 - height}" width="3" height="{height}" rx="1"{dim}/>')
-    return ('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">'
-            '<g fill="#2e3436">' + "".join(rects) + "</g></svg>\n")
-
-
 def build_icons():
+    """The icon theme: icons/theme/*.svg, Omarchy's bar glyphs extracted by
+    tools/omarchy-icons.py. nm-applet asks for a -secure variant on secured
+    networks; it gets the same icon."""
     status = ICONS_OUT / NAME / "scalable" / "status"
     status.mkdir(parents=True)
     (ICONS_OUT / NAME / "index.theme").write_text(ICON_INDEX.format(name=NAME))
-    # nm-applet's names; secured networks get the same plain bars (no lock).
-    for level, strength in enumerate(("00", "25", "50", "75", "100")):
-        for suffix in ("", "-secure"):
-            (status / f"nm-signal-{strength}{suffix}-symbolic.svg").write_text(signal_bars(level))
+    for svg in sorted((ROOT / "icons" / "theme").glob("*.svg")):
+        shutil.copy(svg, status / svg.name)
+        if svg.name.startswith("nm-signal-"):
+            shutil.copy(svg, status / svg.name.replace("-symbolic", "-secure-symbolic"))
 
 
 def rasterize(job):

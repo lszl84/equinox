@@ -18,12 +18,14 @@ switch between them.
   keeps all of it, antialiased only towards the title bar. No theme draws a
   shadow; the only one is the compositor's own, from Window Manager Tweaks.
 - **Icon theme** (select **Equinox** in Settings → Appearance → Icons):
-  Adwaita, plus nm-applet's wifi icons redrawn as crisp symbolic signal
-  bars. nm-applet only ships them as 22x22 bitmaps, which are blurry on a
-  HiDPI panel. Run nm-applet with `--indicator`, and turn on the tray's
-  "symbolic icons", so the panel draws the bars in its own text color.
-- **Light/dark switch** for the Xfce panel: a sun in light mode, a moon in
-  dark mode. Click it to switch the GTK theme, the window frames, and the
+  Adwaita, with [Omarchy](https://github.com/omacom/omarchy)'s bar icons for
+  the panel's wifi, volume, microphone and reboot, at the same optical size.
+  For the wifi icon, run nm-applet with `--indicator` and turn on the tray's
+  "symbolic icons". nm-applet's own icons are 22x22 bitmaps, blurry on a
+  HiDPI panel. See [icons/README.md](icons/README.md) for where each icon
+  comes from.
+- **Light/dark switch** for the Xfce panel: Omarchy's sun in light mode and
+  its moon in dark mode. Click it to switch the GTK theme, the window frames, and the
   color-scheme preference that GTK4/libadwaita apps, Firefox and Chromium
   follow, all at once.
 
@@ -140,10 +142,13 @@ installed copy, then reloads them. Run it again after each edit, and
 | `build.py` | Builds the GTK and xfwm4 themes into `build/themes/` |
 | `bin/equinox-mode` | Switches modes |
 | `plugin/` | The panel plugin |
-| `icons/` | Sun and moon symbolic icons for the panel switch |
+| `icons/` | Omarchy's bar glyphs as symbolic SVGs: the panel switch, and `theme/` for the icon theme |
+| `tools/omarchy-icons.py` | Extracts them from the Nerd Fonts symbols font |
 | `tools/preview.py` | Off-screen previews |
 
 ## License
 
 [MIT](LICENSE). The GTK stylesheet is based on
-[Omagtk](https://github.com/lszl84/omagtk), also MIT.
+[Omagtk](https://github.com/lszl84/omagtk), also MIT. The icons keep their
+upstream licenses (Apache 2.0, CC BY 4.0, SIL OFL 1.1); see
+[icons/README.md](icons/README.md).

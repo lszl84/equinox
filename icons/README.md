@@ -8,7 +8,7 @@ icons share one optical size however the panel draws them.
 
 - `*.svg` go to `hicolor`, for the panel switch.
 - `theme/*.svg` go into the Equinox icon theme, under the names the Xfce
-  panel plugins and nm-applet ask for.
+  panel plugins (volume, power manager), nm-applet and genmon ask for.
 
 | File | Omarchy uses it for | Nerd Font glyph | Source |
 | --- | --- | --- | --- |
@@ -28,6 +28,9 @@ icons share one optical size however the panel draws them.
 | `microphone-sensitivity-{high,medium,low}-symbolic` | microphone | `md-microphone` U+F036C | Material Design Icons |
 | `microphone-sensitivity-muted-symbolic` | microphone, muted | `md-microphone_off` U+F036D | Material Design Icons |
 | `system-reboot-symbolic` | reboot | `md-restart` U+F0709 | Material Design Icons |
+| `battery-level-{0,10,…,100}-symbolic` | battery, on battery: `floor(percent / 10)`, capped at 9, picks `md-battery_10` … `md-battery_90` then `md-battery` | U+F007A … U+F0082, U+F0079 | Material Design Icons |
+| `battery-level-{0,10,…,100}-charging-symbolic` | battery, plugged in: same steps, `md-battery_charging_10` … `md-battery_charging_100` | U+F089C … U+F0085 | Material Design Icons |
+| `battery-level-100-charged-symbolic` | fully charged | `md-battery_charging_100` U+F0085 | Material Design Icons |
 
 To regenerate them, get `SymbolsNerdFont-Regular.ttf` from the
 `NerdFontsSymbolsOnly` archive of a [Nerd Fonts release](https://github.com/ryanoasis/nerd-fonts/releases),

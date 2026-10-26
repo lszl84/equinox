@@ -48,7 +48,21 @@ ICONS = {
     "theme/microphone-sensitivity-muted-symbolic": (0xF036D, "microphone widget, muted"),
     # Reboot required: Omarchy's OSD reboot glyph.
     "theme/system-reboot-symbolic": (0xF0709, "OSD, reboot"),
+    # xfce4-power-manager's panel plugin, see below.
+    "theme/battery-level-100-charged-symbolic": (0xF0085, "power panel, fully charged"),
 }
+
+# Battery: Omarchy's power panel (panels/power/Model.js) picks one of ten
+# glyphs by floor(percentage * 10), capped at 9. xfce4-power-manager asks
+# for battery-level-{0,10,...,100}[-charging]-symbolic, so level L gets
+# glyph min(L / 10, 9): md-battery_10 ... md-battery, md-battery_charging_10
+# ... md-battery_charging_100.
+DISCHARGING = [0xF007A, 0xF007B, 0xF007C, 0xF007D, 0xF007E, 0xF007F, 0xF0080, 0xF0081, 0xF0082, 0xF0079]
+CHARGING = [0xF089C, 0xF0086, 0xF0087, 0xF0088, 0xF089D, 0xF0089, 0xF089E, 0xF008A, 0xF008B, 0xF0085]
+for level in range(0, 101, 10):
+    i = min(level // 10, 9)
+    ICONS[f"theme/battery-level-{level}-symbolic"] = (DISCHARGING[i], f"power panel, {level}%")
+    ICONS[f"theme/battery-level-{level}-charging-symbolic"] = (CHARGING[i], f"power panel, {level}% charging")
 
 
 def main():

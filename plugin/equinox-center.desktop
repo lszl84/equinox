@@ -2,7 +2,7 @@
 Type=X-XFCE-PanelPlugin
 Encoding=UTF-8
 Name=Centering Space (Equinox)
-Comment=Puts the next item in the middle of the screen; add an expanding separator after that item
+Comment=Puts the item before it in the middle of the screen; add an expanding separator before that item
 Icon=format-justify-center-symbolic
 X-XFCE-Module=equinox-center
 X-XFCE-Internal=true

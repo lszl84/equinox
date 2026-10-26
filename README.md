@@ -29,10 +29,11 @@ switch between them.
   number per workspace, a rounded square on the active one, and empty
   workspaces at half opacity. Click a number to switch, or scroll over them.
 - **Centering space** for the Xfce panel: an invisible item that puts the
-  item after it in the middle of the screen. The panel itself can only
+  item before it in the middle of the screen. The panel itself can only
   center between expanding separators, so a clock drifts as the items
-  around it change. Put this just before the clock, and an expanding
-  separator after it.
+  around it change. Put an expanding separator before the clock and this
+  right after it. The clock then depends only on what's to its right, so
+  window buttons coming and going on the left never move it.
 - **Light/dark switch** for the Xfce panel: Omarchy's sun in light mode and
   its moon in dark mode. Click it to switch the GTK theme, the window frames, and the
   color-scheme preference that GTK4/libadwaita apps, Firefox and Chromium

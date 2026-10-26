@@ -8,15 +8,15 @@ switch between them.
 - **GTK3 theme** in a light and a dark variant: flat, rounded and
   libadwaita-inspired, based on [Omagtk](https://github.com/lszl84/omagtk).
 - **Matching xfwm4 theme**: title bars in the header-bar color, with
-  window buttons drawn the way Firefox draws its own: the Adwaita icons,
-  and a soft circle only on hover. Square corners with a crisp 1px
-  outline. Built at 1x, 1.5x and 2x, because xfwm4 doesn't scale its themes.
+  window buttons drawn the way Firefox draws its own (the Adwaita icons,
+  and a soft circle only on hover), and rounded top corners at the same
+  8px radius as Firefox and the GTK theme. Built at 1x, 1.5x and 2x,
+  because xfwm4 doesn't scale its themes.
 
-  The corners aren't rounded because xfwm4 cuts frames with a 1-bit
-  X Shape mask, so rounded frame corners always come out jagged. Apps that
-  draw their own title bar (GTK header bars, Firefox) get rounded corners
-  with an antialiased 1px outline instead. No theme draws a shadow; the
-  only one is the compositor's own, from Window Manager Tweaks.
+  xfwm4 cuts frames with a 1-bit mask, so the corners use the stock Default
+  theme's technique: a solid outline drawn with hard outer edges, so the cut
+  keeps all of it, antialiased only towards the title bar. No theme draws a
+  shadow; the only one is the compositor's own, from Window Manager Tweaks.
 - **Light/dark switch** for the Xfce panel: a sun in light mode, a moon in
   dark mode. Click it to switch the GTK theme, the window frames, and the
   color-scheme preference that GTK4/libadwaita apps, Firefox and Chromium

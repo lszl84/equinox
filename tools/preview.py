@@ -176,8 +176,9 @@ def xfwm4_mock(theme_dir, scale, client_bg, out):
         H = tl.get_height()
         blit(tl, x0, y0)
         blit(tr, x0 + W - tr.get_width(), y0)
-        # Buttons for the layout "|HMC", right-aligned the way xfwm4 places them.
-        off = int(rc["button_offset"])
+        # Buttons for the layout "|HMC". xfwm4 places them button_offset
+        # inside the side border.
+        off = int(rc["button_offset"]) + img(f"right-{state}").get_width()
         bx = x0 + W - off
         buttons = []
         for kind, st in reversed([("hide", state), ("maximize", state), ("close", close_state)]):

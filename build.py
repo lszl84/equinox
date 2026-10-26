@@ -29,15 +29,32 @@ OUT = ROOT / "build" / "themes"
 SCALES = {"": 1, "-hdpi": 1.5, "-xhdpi": 2}
 
 # xfwm4 frame geometry, in logical pixels (multiplied by the scale).
+#
+# The corners are square on purpose: xfwm4 cuts frames with a 1-bit X Shape
+# mask, so rounded corners can only ever come out jagged, and a translucent
+# outline is dropped. A crisp solid 1px outline is the clean option.
 TITLE_HEIGHT = 34
-CORNER_RADIUS = 10  # matches the GTK theme's CSD windows
-BORDER = 3          # sides and bottom, including the outline
-# Buttons follow Firefox's: bare glyphs about 34px apart, with a rounded
-# highlight only on hover and press (red for close).
-BUTTON_WIDTH = 34
-HIGHLIGHT = (30, 24, 6)  # width, height, corner radius
-GLYPH = 9
-STROKE = 1.5
+BORDER = 3  # sides and bottom, including the 1px outline
+
+# Window buttons copy Firefox's on Linux (browser.css, .titlebar-button): a
+# 16px Adwaita symbolic icon in a 24px circle that only shows on hover
+# (15% of the icon color, 30% when pressed), 6.5px of padding on each side
+# of a button, and 10px between the last button and the window edge.
+BUTTON_SIZE = 24
+BUTTON_PADDING = 6.5
+BUTTON_END_SPACING = 10
+ICON_DIR = Path("/usr/share/icons/Adwaita/symbolic")
+ICONS = {
+    "close": "ui/window-close",
+    "maximize": "ui/window-maximize",
+    "maximize-toggled": "ui/window-restore",
+    "hide": "ui/window-minimize",
+    "menu": "actions/view-more-horizontal",
+    "shade": "ui/pan-up",
+    "shade-toggled": "ui/pan-down",
+    "stick": "actions/view-pin",
+    "stick-toggled": "actions/view-pin",
+}
 
 
 # ── Colors ───────────────────────────────────────────────────────────────
@@ -113,7 +130,7 @@ class Palette:
         self.extreme = WHITE if light else BLACK
         self.knob = WHITE if light else mix(fg, WHITE, 0.65)
         self.shadow = alpha(BLACK, 0.12 if light else 0.35)
-        self.outline = alpha(BLACK, 0.14 if light else 0.6)
+        self.outline = alpha(BLACK, 0.14 if light else 0.5)
         for key in ("accent", "red", "green", "yellow"):
             setattr(self, key + "_fg", on_color(getattr(self, key), bg, fg))
 
@@ -122,7 +139,9 @@ class Palette:
         self.dim = mix(fg, bg, 0.35)
         self.faint = mix(fg, bg, 0.55)
         self.border = over(alpha(fg, 0.12), self.headerbar)
-        self.red_active = mix(self.red, self.extreme, 0.15)
+        # xfwm4 can't draw translucent frame pixels, so its outline is the
+        # GTK outline flattened onto the title bar color.
+        self.frame_outline = over(self.outline, self.headerbar)
 
     def css(self):
         def rgba(c):
@@ -168,113 +187,98 @@ def build_gtk(light, dark):
 
 # ── xfwm4 ────────────────────────────────────────────────────────────────
 
+def load_icon(name):
+    """The inner markup of an Adwaita symbolic icon, with its colors removed
+    so the button can fill it."""
+    import xml.etree.ElementTree as ET
+    path = ICON_DIR / f"{name}-symbolic.svg"
+    if not path.exists():
+        sys.exit(f"build.py: {path} not found (apt install adwaita-icon-theme)")
+    root = ET.parse(path).getroot()
+    parts = []
+    for el in root.iter():
+        if el is root or "d" not in el.attrib and el.tag.split("}")[-1] not in ("rect", "circle", "ellipse"):
+            continue
+        attrs = {k: v for k, v in el.attrib.items() if k not in ("fill", "style", "class", "fill-opacity")}
+        tag = el.tag.split("}")[-1]
+        parts.append(f"<{tag} " + " ".join(f'{k}="{v}"' for k, v in attrs.items()) + "/>")
+    return "".join(parts)
+
+
 class Frame:
     """One xfwm4 theme: a palette at one scale."""
 
-    def __init__(self, pal, scale):
+    def __init__(self, pal, scale, icons):
         self.p = pal
         self.s = scale
+        self.icons = icons
         px = lambda v: max(1, round(v * scale))
-        self.h = px(TITLE_HEIGHT)
-        self.r = px(CORNER_RADIUS)
+        even = lambda v: 2 * round(v * scale / 2)
+        # Even sizes keep the icons' centers on whole pixels, so they're crisp.
+        self.h = even(TITLE_HEIGHT)
+        self.bw = even(BUTTON_SIZE + 2 * BUTTON_PADDING)
         self.b = px(BORDER)
         self.o = px(1)    # outline
-        self.sep = px(1)  # title bar bottom separator
-        self.bw = px(BUTTON_WIDTH)
+        self.sep = px(1)  # line under the title bar
 
     def svg(self, w, h, body):
         return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" '
                 f'viewBox="0 0 {w} {h}">{body}</svg>')
 
-    def title_bg(self, w):
-        """Title bar strip: outline on top, header bar fill, separator."""
-        p, h, o, sep = self.p, self.h, self.o, self.sep
-        return (f'<rect width="{w}" height="{o}" {svg_fill(p.outline)}/>'
-                f'<rect y="{o}" width="{w}" height="{h - o}" {svg_fill(p.headerbar)}/>'
-                f'<rect y="{h - sep}" width="{w}" height="{sep}" {svg_fill(p.border)}/>')
+    def rect(self, x, y, w, h, color):
+        return f'<rect x="{x}" y="{y}" width="{w}" height="{h}" {svg_fill(color)}/>'
 
     def mirror(self, w, body):
         return f'<g transform="translate({w} 0) scale(-1 1)">{body}</g>'
 
+    def title_bg(self, w):
+        """Title bar strip: outline on top, title bar color, separator."""
+        p, h, o, sep = self.p, self.h, self.o, self.sep
+        return (self.rect(0, 0, w, h, p.headerbar)
+                + self.rect(0, 0, w, o, p.frame_outline)
+                + self.rect(0, h - sep, w, sep, p.border))
+
     def corner_top(self):
-        p, h, r, o, sep = self.p, self.h, self.r, self.o, self.sep
-        ri = r - o
-        outer = f'<path d="M0 {h} V{r} A{r} {r} 0 0 1 {r} 0 V{h} Z" {svg_fill(p.outline)}/>'
-        inner = f'<path d="M{o} {h} V{r} A{ri} {ri} 0 0 1 {r} {o} V{h} Z" {svg_fill(p.headerbar)}/>'
-        line = f'<rect x="{o}" y="{h - sep}" width="{r - o}" height="{sep}" {svg_fill(p.border)}/>'
-        return outer + inner + line
+        p, h, b, o = self.p, self.h, self.b, self.o
+        return self.title_bg(b) + self.rect(0, 0, o, h, p.frame_outline)
 
     def side(self, n=8):
         p, b, o = self.p, self.b, self.o
-        return (f'<rect width="{o}" height="{n}" {svg_fill(p.outline)}/>'
-                f'<rect x="{o}" width="{b - o}" height="{n}" {svg_fill(p.background)}/>')
+        return self.rect(0, 0, b, n, p.background) + self.rect(0, 0, o, n, p.frame_outline)
 
     def bottom(self, n=8):
         p, b, o = self.p, self.b, self.o
-        return (f'<rect width="{n}" height="{b - o}" {svg_fill(p.background)}/>'
-                f'<rect y="{b - o}" width="{n}" height="{o}" {svg_fill(p.outline)}/>')
+        return self.rect(0, 0, n, b, p.background) + self.rect(0, b - o, n, o, p.frame_outline)
 
     def corner_bottom(self):
         p, b, o = self.p, self.b, self.o
-        return (f'<rect x="{o}" width="{b - o}" height="{b - o}" {svg_fill(p.background)}/>'
-                f'<path d="M0 0 H{o} V{b - o} H{b} V{b} H0 Z" {svg_fill(p.outline)}/>')
-
-    def glyph(self, kind, cx, cy, color):
-        h = GLYPH * self.s / 2
-        sw = STROKE * self.s
-        stroke = (f'fill="none" stroke="{hexc(color)}" stroke-width="{sw:.2f}" '
-                  f'stroke-linecap="round" stroke-linejoin="round"')
-        fill = f'fill="{hexc(color)}"'
-        if kind == "close":
-            k = h * 0.9
-            return (f'<path d="M{cx - k} {cy - k} L{cx + k} {cy + k} '
-                    f'M{cx + k} {cy - k} L{cx - k} {cy + k}" {stroke}/>')
-        if kind == "maximize":
-            return (f'<rect x="{cx - h}" y="{cy - h}" width="{2 * h}" height="{2 * h}" '
-                    f'rx="{1.2 * self.s:.2f}" {stroke}/>')
-        if kind == "maximize-toggled":  # restore: two overlapping windows
-            d = 2.5 * self.s
-            return (f'<rect x="{cx - h}" y="{cy - h + d}" width="{2 * h - d}" height="{2 * h - d}" '
-                    f'rx="{self.s:.2f}" {stroke}/>'
-                    f'<path d="M{cx - h + d} {cy - h} H{cx + h} V{cy + h - d}" {stroke}/>')
-        if kind == "hide":
-            return f'<path d="M{cx - h} {cy + h * 0.5} H{cx + h}" {stroke}/>'
-        if kind == "menu":
-            return "".join(f'<circle cx="{cx + dx * h * 0.85}" cy="{cy}" r="{sw * 0.8:.2f}" {fill}/>'
-                           for dx in (-1, 0, 1))
-        if kind in ("shade", "shade-toggled"):
-            y = h * 0.45 * (1 if kind == "shade" else -1)
-            return f'<path d="M{cx - h} {cy + y} L{cx} {cy - y} L{cx + h} {cy + y}" {stroke}/>'
-        if kind == "stick":
-            return f'<circle cx="{cx}" cy="{cy}" r="{h * 0.6:.2f}" {stroke}/>'
-        if kind == "stick-toggled":
-            return f'<circle cx="{cx}" cy="{cy}" r="{h * 0.7:.2f}" {fill}/>'
-        raise ValueError(kind)
+        return (self.rect(0, 0, b, b, p.background)
+                + self.rect(0, 0, o, b, p.frame_outline)
+                + self.rect(0, b - o, b, o, p.frame_outline))
 
     def button(self, kind, state):
         p = self.p
-        looks = {  # state: (highlight, glyph color)
-            "active": (None, p.dim),
-            "inactive": (None, p.faint),
-            "prelight": (alpha(p.foreground, 0.13), p.foreground),
-            "pressed": (alpha(p.foreground, 0.19), p.foreground),
-        }
-        if kind == "close":
-            looks["prelight"] = (p.red, p.red_fg)
-            looks["pressed"] = (p.red_active, p.red_fg)
-        highlight, glyph = looks[state]
-        cx = self.bw / 2
-        cy = (self.o + self.h - self.sep) / 2
+        color = p.dim if state == "inactive" else p.foreground
+        circle = {"prelight": 0.15, "pressed": 0.30}.get(state)
+        # A toggled button (shade, stick) keeps its circle, like a checked toggle.
+        if circle is None and kind.endswith("-toggled") and kind != "maximize-toggled":
+            circle = 0.15
+        cx, cy = self.bw / 2, self.h / 2
         body = self.title_bg(self.bw)
-        if highlight is not None:
-            w, h, r = (v * self.s for v in HIGHLIGHT)
-            body += (f'<rect x="{cx - w / 2:.2f}" y="{cy - h / 2:.2f}" width="{w:.2f}" '
-                     f'height="{h:.2f}" rx="{r:.2f}" {svg_fill(highlight)}/>')
-        body += self.glyph(kind, cx, cy, glyph)
+        if circle is not None:
+            body += (f'<circle cx="{cx}" cy="{cy}" r="{BUTTON_SIZE * self.s / 2:g}" '
+                     f'{svg_fill(alpha(color, circle))}/>')
+        k = self.s  # the icons are drawn on a 16px grid
+        body += (f'<g fill="{hexc(color)}" transform="translate({cx - 8 * k:g} {cy - 8 * k:g}) '
+                 f'scale({k:g})">{self.icons[kind]}</g>')
         return self.svg(self.bw, self.h, body)
 
     def themerc(self):
         p = self.p
+        # xfwm4 starts the buttons button_offset from the side border. Place
+        # the last circle BUTTON_END_SPACING from the window edge, like Firefox.
+        circle_margin = (self.bw - round(BUTTON_SIZE * self.s)) / 2
+        offset = max(0, round(BUTTON_END_SPACING * self.s - circle_margin - self.b))
         return "\n".join([
             f"# {NAME} xfwm4 theme, {p.mode} at {self.s:g}x. Generated by build.py.",
             f"active_text_color={hexc(p.foreground)}",
@@ -286,8 +290,7 @@ class Frame:
             "title_horizontal_offset=0",
             "title_vertical_offset_active=0",
             "title_vertical_offset_inactive=0",
-            # Keep the buttons clear of the rounded corners.
-            f"button_offset={self.r}",
+            f"button_offset={offset}",
             "button_spacing=0",
             "show_app_icon=false",
             "maximized_offset=0",
@@ -296,10 +299,10 @@ class Frame:
     def images(self):
         """Yield (file stem, svg) for every image xfwm4 looks for."""
         tw = max(1, round(4 * self.s))
-        h, r, b = self.h, self.r, self.b
+        h, b = self.h, self.b
         pieces = {
-            "top-left": self.svg(r, h, self.corner_top()),
-            "top-right": self.svg(r, h, self.mirror(r, self.corner_top())),
+            "top-left": self.svg(b, h, self.corner_top()),
+            "top-right": self.svg(b, h, self.mirror(b, self.corner_top())),
             "left": self.svg(b, 8, self.side()),
             "right": self.svg(b, 8, self.mirror(b, self.side())),
             "bottom": self.svg(8, b, self.bottom()),
@@ -311,8 +314,7 @@ class Frame:
         for name, svg in pieces.items():
             for state in ("active", "inactive"):
                 yield f"{name}-{state}", svg
-        for kind in ("close", "hide", "maximize", "maximize-toggled", "menu",
-                     "shade", "shade-toggled", "stick", "stick-toggled"):
+        for kind in ICONS:
             for state in ("active", "inactive", "prelight", "pressed"):
                 yield f"{kind}-{state}", self.button(kind, state)
 
@@ -324,10 +326,11 @@ def rasterize(job):
 
 
 def build_xfwm4(light, dark):
+    icons = {kind: load_icon(name) for kind, name in ICONS.items()}
     jobs = []
     for pal, theme in ((light, NAME), (dark, f"{NAME}-dark")):
         for suffix, scale in SCALES.items():
-            frame = Frame(pal, scale)
+            frame = Frame(pal, scale, icons)
             xfwm4 = OUT / (theme + suffix) / "xfwm4"
             xfwm4.mkdir(parents=True, exist_ok=True)
             (xfwm4 / "themerc").write_text(frame.themerc())

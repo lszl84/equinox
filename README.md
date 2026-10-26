@@ -7,9 +7,16 @@ switch between them.
 
 - **GTK3 theme** in a light and a dark variant: flat, rounded and
   libadwaita-inspired, based on [Omagtk](https://github.com/lszl84/omagtk).
-- **Matching xfwm4 theme**: rounded title bars in the header-bar color,
-  circular window buttons, and a red close button on hover. Built at 1x,
-  1.5x and 2x, because xfwm4 doesn't scale its themes.
+- **Matching xfwm4 theme**: title bars in the header-bar color, with
+  window buttons drawn the way Firefox draws its own: the Adwaita icons,
+  and a soft circle only on hover. Square corners with a crisp 1px
+  outline. Built at 1x, 1.5x and 2x, because xfwm4 doesn't scale its themes.
+
+  The corners aren't rounded because xfwm4 cuts frames with a 1-bit
+  X Shape mask, so rounded frame corners always come out jagged. Apps that
+  draw their own title bar (GTK header bars, Firefox) get rounded corners
+  with an antialiased 1px outline instead. No theme draws a shadow; the
+  only one is the compositor's own, from Window Manager Tweaks.
 - **Light/dark switch** for the Xfce panel: a sun in light mode, a moon in
   dark mode. Click it to switch the GTK theme, the window frames, and the
   color-scheme preference that GTK4/libadwaita apps, Firefox and Chromium
@@ -18,11 +25,11 @@ switch between them.
 ## Requirements
 
 - Xfce 4.20 (Debian 13 "trixie"); GTK 3.24 apps
-- To build: `python3`, `rsvg-convert`, a C compiler, `make`, and the Xfce
-  panel headers:
+- To build: `python3`, `rsvg-convert`, the Adwaita icons (for the window
+  buttons), a C compiler, `make`, and the Xfce panel headers:
 
   ```sh
-  sudo apt install librsvg2-bin build-essential pkg-config \
+  sudo apt install librsvg2-bin adwaita-icon-theme build-essential pkg-config \
     libxfce4panel-2.0-dev libxfce4ui-2-dev libxfconf-0-dev libgtk-3-dev
   ```
 

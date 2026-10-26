@@ -34,8 +34,6 @@
 @define-color eqx_accent_softer alpha(@eqx_accent, 0.12);
 @define-color eqx_accent_text mix(@eqx_accent, @eqx_fg, 0.25);
 
-@define-color eqx_shadow_soft alpha(@eqx_shadow, 0.6);
-
 @define-color eqx_focus alpha(@eqx_accent, 0.55);
 @define-color eqx_selection alpha(@eqx_accent, 0.32);
 
@@ -1416,36 +1414,25 @@ headerbar > separator {
   background-color: @eqx_border;
 }
 
-/* Window controls: bare icons with a rounded highlight on hover, like the
-   xfwm4 theme's buttons (and Firefox's). */
+/* Window controls, as Firefox draws them on Linux: the icon in a 24px
+   circle that only shows on hover (15% of the icon color, 30% pressed). */
 button.titlebutton {
-  min-width: 30px;
+  min-width: 24px;
   min-height: 24px;
-  margin: 0;
+  margin: 0 3px;
   padding: 0;
-  border-radius: 6px;
-  -gtk-outline-radius: 6px;
-  color: @eqx_dim;
+  border-radius: 999px;
+  -gtk-outline-radius: 999px;
+  color: @eqx_fg;
   background-color: transparent;
 }
 
 button.titlebutton:hover {
-  color: @eqx_fg;
-  background-color: @eqx_fill_hover;
+  background-color: alpha(currentColor, 0.15);
 }
 
 button.titlebutton:active {
-  background-color: @eqx_fill_active;
-}
-
-button.titlebutton.close:hover {
-  color: @eqx_red_fg;
-  background-color: @eqx_red;
-}
-
-button.titlebutton.close:active {
-  color: @eqx_red_fg;
-  background-color: mix(@eqx_red, @eqx_extreme, 0.15);
+  background-color: alpha(currentColor, 0.3);
 }
 
 button.titlebutton:backdrop {
@@ -3536,19 +3523,15 @@ cursor-handle.bottom {
  * Window Decorations *
  **********************/
 
-/* xfwm4 is a stacking window manager with a compositor, so client-side
-   decorated windows get the same rounded top corners and soft shadow as the
-   Equinox xfwm4 theme. The shadow margin doubles as the resize area. */
+/* No shadows. Client-side decorated windows get rounded corners and a 1px
+   antialiased outline, like Firefox's, inside a small transparent margin
+   that doubles as the resize area. (xfwm4 frames can't antialias, so they
+   are square; see build.py.) */
 decoration {
-  border-radius: 10px 10px 0 0;
+  border-radius: 8px 8px 0 0;
   border-width: 0;
-  box-shadow: 0 3px 9px 1px @eqx_shadow, 0 0 0 1px @eqx_outline;
-  margin: 10px;
-}
-
-decoration:backdrop {
-  box-shadow: 0 2px 6px 0 @eqx_shadow_soft, 0 0 0 1px @eqx_outline;
-  transition: 200ms ease-out;
+  box-shadow: 0 0 0 1px @eqx_outline;
+  margin: 4px;
 }
 
 .maximized decoration,
@@ -3577,7 +3560,7 @@ decoration:backdrop {
 
 .csd.popup decoration {
   border-radius: 10px;
-  box-shadow: 0 4px 16px @eqx_shadow, 0 0 0 1px @eqx_outline;
+  box-shadow: 0 4px 16px @eqx_shadow;
 }
 
 tooltip.csd decoration {
@@ -3587,7 +3570,7 @@ tooltip.csd decoration {
 
 messagedialog.csd decoration {
   border-radius: 12px;
-  box-shadow: 0 8px 24px @eqx_shadow, 0 0 0 1px @eqx_outline;
+  box-shadow: 0 8px 24px @eqx_shadow;
 }
 
 /* Without a compositor GTK can't draw shadows or round corners, so the
@@ -3603,15 +3586,15 @@ messagedialog.csd decoration {
 
 /* Header bars used as title bars follow the window's rounded corners. */
 window.csd:not(.maximized):not(.fullscreen):not(.tiled):not(.tiled-top):not(.tiled-right):not(.tiled-bottom):not(.tiled-left):not(.solid-csd) > .titlebar {
-  border-radius: 10px 10px 0 0;
+  border-radius: 8px 8px 0 0;
 }
 
 window.csd:not(.maximized):not(.fullscreen):not(.tiled):not(.tiled-top):not(.tiled-right):not(.tiled-bottom):not(.tiled-left):not(.solid-csd) > paned.titlebar > headerbar:first-child {
-  border-top-left-radius: 10px;
+  border-top-left-radius: 8px;
 }
 
 window.csd:not(.maximized):not(.fullscreen):not(.tiled):not(.tiled-top):not(.tiled-right):not(.tiled-bottom):not(.tiled-left):not(.solid-csd) > paned.titlebar > headerbar:last-child {
-  border-top-right-radius: 10px;
+  border-top-right-radius: 8px;
 }
 
 /* Scrollable windows that are directly inside a window get no extra frame. */

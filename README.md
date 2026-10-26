@@ -36,7 +36,7 @@ switch between them.
 ## Install
 
 ```sh
-git clone <repo-url> equinox
+git clone https://github.com/lszl84/equinox.git
 cd equinox
 make
 sudo make install

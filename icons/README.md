@@ -17,7 +17,8 @@ shrinks wide icons: on the panel the volume icon was 16px tall next to a
 
 - `*.svg` go to `hicolor`, for the panel plugins.
 - `theme/*.svg` go into the Equinox icon theme, under the names the Xfce
-  panel plugins (volume, power manager), nm-applet and genmon ask for.
+  panel plugins (volume, power manager), nm-applet, Blueman and genmon ask
+  for.
 
 | File | Omarchy uses it for | Nerd Font glyph | Source |
 | --- | --- | --- | --- |
@@ -38,6 +39,9 @@ shrinks wide icons: on the panel the volume icon was 16px tall next to a
 | `microphone-sensitivity-{high,medium,low}-symbolic` | microphone | `md-microphone` U+F036C | Material Design Icons |
 | `microphone-sensitivity-muted-symbolic` | microphone, muted | `md-microphone_off` U+F036D | Material Design Icons |
 | `system-reboot-symbolic` | reboot | `md-restart` U+F0709 | Material Design Icons |
+| `blueman-tray-symbolic`, `bluetooth-symbolic`, `bluetooth-active-symbolic` | Bluetooth on | `md-bluetooth` U+F00AF | Material Design Icons |
+| `blueman-active-symbolic` | Bluetooth, a device connected | `md-bluetooth_connect` U+F00B1 | Material Design Icons |
+| `blueman-disabled-symbolic`, `bluetooth-disabled-symbolic` | Bluetooth off | `md-bluetooth_off` U+F00B2 | Material Design Icons |
 | `battery-level-{0,10,…,100}-symbolic` | battery, on battery: `floor(percent / 10)`, capped at 9, picks `md-battery_10` … `md-battery_90` then `md-battery` | U+F007A … U+F0082, U+F0079 | Material Design Icons |
 | `battery-level-{0,10,…,100}-charging-symbolic` | battery, plugged in: same steps, `md-battery_charging_10` … `md-battery_charging_100` | U+F089C … U+F0085 | Material Design Icons |
 | `battery-level-100-charged-symbolic` | fully charged | `md-battery_charging_100` U+F0085 | Material Design Icons |

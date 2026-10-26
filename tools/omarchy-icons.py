@@ -58,6 +58,15 @@ ICONS = {
     "theme/microphone-sensitivity-medium-symbolic": (0xF036C, "microphone widget"),
     "theme/microphone-sensitivity-low-symbolic": (0xF036C, "microphone widget"),
     "theme/microphone-sensitivity-muted-symbolic": (0xF036D, "microphone widget, muted"),
+    # Blueman's tray icon (blueman-tray / -active / -disabled), and the
+    # standard Bluetooth names its menu and other apps use: Omarchy's
+    # Bluetooth panel (on, a device connected, off).
+    "theme/blueman-tray-symbolic": (0xF00AF, "bluetooth panel, on"),
+    "theme/blueman-active-symbolic": (0xF00B1, "bluetooth panel, a device connected"),
+    "theme/blueman-disabled-symbolic": (0xF00B2, "bluetooth panel, off"),
+    "theme/bluetooth-symbolic": (0xF00AF, "bluetooth panel, on"),
+    "theme/bluetooth-active-symbolic": (0xF00AF, "bluetooth panel, on"),
+    "theme/bluetooth-disabled-symbolic": (0xF00B2, "bluetooth panel, off"),
     # Reboot required: Omarchy's OSD reboot glyph.
     "theme/system-reboot-symbolic": (0xF0709, "OSD, reboot"),
     # xfce4-power-manager's panel plugin, see below.

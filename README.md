@@ -109,8 +109,10 @@ The panel button shows a moon whenever the GTK theme's name ends in "dark".
 
 > [!NOTE]
 > The panel itself only follows the theme when its background style is
-> **None (use system style)**, in Panel Preferences → Appearance. A solid
-> color set there stays the same in both modes.
+> **None (use system style)**, in Panel Preferences → Appearance, and its
+> **Dark mode** is off; a solid color, or dark mode, keeps the panel the same
+> in both modes. `equinox-mode` also makes the tray redraw its icons, which
+> Xfce's tray would otherwise leave in the old mode's colors.
 
 ## How it works
 

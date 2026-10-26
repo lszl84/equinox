@@ -111,6 +111,21 @@ has_color_scheme() {
     gsettings writable org.gnome.desktop.interface color-scheme >/dev/null 2>&1
 }
 
+# Xfce's tray draws StatusNotifier icons (nm-applet, Blueman) once, in the
+# colors of the moment, and doesn't redraw them for a new theme: on a light
+# bar they stayed white. Flipping its symbolic-icons option off and on makes
+# it redraw them. Wait a moment first, for the panel to take the new theme.
+repaint_tray() {
+  local plugin
+  sleep 1
+  for plugin in $(xfconf-query -c xfce4-panel -l 2>/dev/null | grep -E '^/plugins/plugin-[0-9]+$'); do
+    [[ $(get xfce4-panel "$plugin") == systray ]] || continue
+    [[ $(get xfce4-panel "$plugin/symbolic-icons") == true ]] || continue
+    xfconf-query -c xfce4-panel -p "$plugin/symbolic-icons" -s false
+    xfconf-query -c xfce4-panel -p "$plugin/symbolic-icons" -s true
+  done
+}
+
 switch_to() { # light|dark
   local mode="$1" gtk wm icons scheme
 
@@ -129,6 +144,7 @@ switch_to() { # light|dark
   if has_color_scheme; then
     gsettings set org.gnome.desktop.interface color-scheme "$scheme"
   fi
+  repaint_tray >/dev/null 2>&1 &
   return 0
 }
 
@@ -143,6 +159,7 @@ cmd_reload() {
   sleep 0.3
   set_string xsettings /Net/ThemeName "$gtk"
   set_string xfwm4 /general/theme "$wm"
+  repaint_tray >/dev/null 2>&1 &
 }
 
 cmd_status() {

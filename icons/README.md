@@ -1,10 +1,19 @@
 # Icons
 
 These are the glyphs [Omarchy](https://github.com/omacom/omarchy)'s bar uses,
-as symbolic SVGs. `tools/omarchy-icons.py` extracts them from the Nerd Fonts
-symbols font, using the fit Omarchy's `OpticalGlyph` applies: the tight ink box
-scaled so its longest side is 12px, centered by ink in a 16px canvas. So the
-icons share one optical size however the panel draws them.
+as symbolic SVGs, extracted from the Nerd Fonts symbols font by
+`tools/omarchy-icons.py`.
+
+Every status icon gets the same ink height: 10.5 of a 16px canvas, so 21px
+on a 2x panel, centered by ink. That's the glyphs' own proportion: in the
+font the Material Design and Font Awesome glyphs share a height of about
+0.8em, with wide ones simply wider. So the row reads as evenly as the
+glyphs set as text, and sits level with the panel's 13px digits.
+
+Fitting the longest side instead, as Omarchy's current `OpticalGlyph` does,
+shrinks wide icons: on the panel the volume icon was 16px tall next to a
+24px battery. The active-workspace square keeps that fit (longest side 12 of
+16), because the workspaces plugin draws it at the font's pixel size.
 
 - `*.svg` go to `hicolor`, for the panel plugins.
 - `theme/*.svg` go into the Equinox icon theme, under the names the Xfce

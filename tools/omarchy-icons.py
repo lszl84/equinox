@@ -4,10 +4,17 @@
     python3 tools/omarchy-icons.py SymbolsNerdFont-Regular.ttf [FONTTOOLS_DIR]
 
 Omarchy (github.com/omacom/omarchy, shell/) draws its bar icons as Nerd Font
-glyphs. Its OpticalGlyph component doesn't set them as plain text: it fits
-each glyph's tight ink box so the longest side is 12px, centered by ink in a
-16px canvas (Style.bar iconSize 12, iconCanvas 16). This does the same, so
-the icons share one optical size and center however the panel draws them.
+glyphs. Here every status icon gets the same ink height: 10.5 of a 16px
+canvas, centered by ink. That's the glyphs' own proportion in the font:
+the Material Design and Font Awesome glyphs share a height of about 0.8em,
+with wide ones simply wider. At the panel's 13px font that's 10.5px, level
+with the digits. Fitting the longest side instead (Omarchy's current
+OpticalGlyph) shrinks wide icons: the volume icon came out 2/3 the height
+of the battery. Icons wider than the canvas allows are fit to its width.
+
+The active-workspace square is the exception. The workspaces plugin draws
+it at the font's pixel size, so it keeps the font's own fit: the glyph is
+0.75em, so its longest side is 12 of 16.
 
 The font is SymbolsNerdFont-Regular.ttf from the Nerd Fonts release
 (NerdFontsSymbolsOnly). Its glyphs are the same artwork as Omarchy's
@@ -22,7 +29,10 @@ import sys
 from pathlib import Path
 
 CANVAS = 16
-PAINTED = 12  # Omarchy's Style.bar.iconSize
+HEIGHT = 10.5     # ink height of every status icon, in canvas units
+MAX_WIDTH = 15.5  # wide icons are fit to the canvas
+BOX = 12          # longest side, for icons drawn at the font's size
+FIT_BOX = {"equinox-workspace-active-symbolic"}
 
 # file stem: (codepoint, where Omarchy uses it)
 ICONS = {
@@ -86,7 +96,10 @@ def main():
         bounds = BoundsPen(glyphs)
         glyphs[name].draw(bounds)
         x0, y0, x1, y1 = bounds.bounds
-        scale = PAINTED / max(x1 - x0, y1 - y0)
+        if stem in FIT_BOX:
+            scale = BOX / max(x1 - x0, y1 - y0)
+        else:
+            scale = min(HEIGHT / (y1 - y0), MAX_WIDTH / (x1 - x0))
         # Font units are y-up; center the ink box in the canvas, y-down.
         dx = CANVAS / 2 - (x0 + x1) / 2 * scale
         dy = CANVAS / 2 + (y0 + y1) / 2 * scale

@@ -20,7 +20,7 @@ switch between them.
 - **Icon theme** (select **Equinox** in Settings → Appearance → Icons):
   Adwaita, with [Omarchy](https://github.com/omacom/omarchy)'s bar icons for
   the panel's wifi, volume, microphone, battery (the Power Manager plugin) and
-  reboot, at the same optical size.
+  reboot, all the same height, the glyphs' own proportion in the font.
   For the wifi icon, run nm-applet with `--indicator` and turn on the tray's
   "symbolic icons". nm-applet's own icons are 22x22 bitmaps, blurry on a
   HiDPI panel. See [icons/README.md](icons/README.md) for where each icon

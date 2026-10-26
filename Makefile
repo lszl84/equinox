@@ -20,7 +20,8 @@ CFLAGS += -Wall -Wextra -Wno-unused-parameter -fPIC
 
 SWITCH = build/libequinox-switch.so
 WORKSPACES = build/libequinox-workspaces.so
-PLUGINS = $(SWITCH) $(WORKSPACES)
+CENTER = build/libequinox-center.so
+PLUGINS = $(SWITCH) $(WORKSPACES) $(CENTER)
 THEMES = Equinox Equinox-dark Equinox-hdpi Equinox-dark-hdpi Equinox-xhdpi Equinox-dark-xhdpi
 
 all: themes $(PLUGINS)
@@ -42,6 +43,10 @@ $(WORKSPACES): plugin/equinox-workspaces.c | check-deps
 	$(CC) $(CFLAGS) $(shell pkg-config --cflags libxfce4panel-2.0 libwnck-3.0) \
 	  -shared -o $@ $< $(LDFLAGS) $(shell pkg-config --libs libxfce4panel-2.0 libwnck-3.0)
 
+$(CENTER): plugin/equinox-center.c | check-deps
+	$(CC) $(CFLAGS) $(shell pkg-config --cflags libxfce4panel-2.0) \
+	  -shared -o $@ $< $(LDFLAGS) $(shell pkg-config --libs libxfce4panel-2.0)
+
 preview: themes
 	python3 tools/preview.py build/preview
 
@@ -61,13 +66,13 @@ undev:
 	bin/equinox-mode reload
 
 install:
-	@test -d build/themes -a -f $(SWITCH) -a -f $(WORKSPACES) || { echo "Run 'make' first."; exit 1; }
+	@test -d build/themes -a -f $(SWITCH) -a -f $(WORKSPACES) -a -f $(CENTER) || { echo "Run 'make' first."; exit 1; }
 	install -d $(DESTDIR)$(DATADIR)/themes
 	for t in $(THEMES); do rm -rf $(DESTDIR)$(DATADIR)/themes/$$t; done
 	cp -r build/themes/. $(DESTDIR)$(DATADIR)/themes/
 	install -Dm755 bin/equinox-mode $(DESTDIR)$(PREFIX)/bin/equinox-mode
 	install -Dm755 -t $(DESTDIR)$(PLUGIN_DIR) $(PLUGINS)
-	install -Dm644 -t $(DESTDIR)$(PLUGIN_DATA_DIR) plugin/equinox-switch.desktop plugin/equinox-workspaces.desktop
+	install -Dm644 -t $(DESTDIR)$(PLUGIN_DATA_DIR) plugin/*.desktop
 	install -Dm644 -t $(DESTDIR)$(DATADIR)/icons/hicolor/scalable/status icons/*.svg
 	rm -rf $(DESTDIR)$(DATADIR)/icons/Equinox
 	cp -r build/icons/Equinox $(DESTDIR)$(DATADIR)/icons/
@@ -75,8 +80,8 @@ install:
 uninstall:
 	for t in $(THEMES); do rm -rf $(DESTDIR)$(DATADIR)/themes/$$t; done
 	rm -f $(DESTDIR)$(PREFIX)/bin/equinox-mode
-	rm -f $(DESTDIR)$(PLUGIN_DIR)/libequinox-switch.so $(DESTDIR)$(PLUGIN_DIR)/libequinox-workspaces.so
-	rm -f $(DESTDIR)$(PLUGIN_DATA_DIR)/equinox-switch.desktop $(DESTDIR)$(PLUGIN_DATA_DIR)/equinox-workspaces.desktop
+	for p in switch workspaces center; do \
+	  rm -f $(DESTDIR)$(PLUGIN_DIR)/libequinox-$$p.so $(DESTDIR)$(PLUGIN_DATA_DIR)/equinox-$$p.desktop; done
 	rm -f $(DESTDIR)$(DATADIR)/icons/hicolor/scalable/status/equinox-light-symbolic.svg
 	rm -f $(DESTDIR)$(DATADIR)/icons/hicolor/scalable/status/equinox-dark-symbolic.svg
 	rm -f $(DESTDIR)$(DATADIR)/icons/hicolor/scalable/status/equinox-workspace-active-symbolic.svg

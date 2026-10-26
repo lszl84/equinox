@@ -28,6 +28,11 @@ switch between them.
 - **Workspaces** for the Xfce panel, the way Omarchy's bar shows them: a
   number per workspace, a rounded square on the active one, and empty
   workspaces at half opacity. Click a number to switch, or scroll over them.
+- **Centering space** for the Xfce panel: an invisible item that puts the
+  item after it in the middle of the screen. The panel itself can only
+  center between expanding separators, so a clock drifts as the items
+  around it change. Put this just before the clock, and an expanding
+  separator after it.
 - **Light/dark switch** for the Xfce panel: Omarchy's sun in light mode and
   its moon in dark mode. Click it to switch the GTK theme, the window frames, and the
   color-scheme preference that GTK4/libadwaita apps, Firefox and Chromium
@@ -58,7 +63,7 @@ This installs the themes, the `equinox-mode` command and the icons under
 `/usr`, the only places it looks. `sudo make uninstall` removes it all.
 
 Then add the switch to a panel: **Panel → Panel Preferences → Items → +**,
-then pick **Light/Dark Mode Switch**, or **Workspaces (Equinox)**. Or, from a terminal:
+then pick **Light/Dark Mode Switch**, **Workspaces (Equinox)** or **Centering Space (Equinox)**. Or, from a terminal:
 
 ```sh
 xfce4-panel -r                       # the panel only scans for plugins at startup
@@ -145,7 +150,7 @@ installed copy, then reloads them. Run it again after each edit, and
 | `gtk-3.0/base.css` | The GTK3 stylesheet |
 | `build.py` | Builds the GTK and xfwm4 themes into `build/themes/` |
 | `bin/equinox-mode` | Switches modes |
-| `plugin/` | The panel plugins: the light/dark switch, and the workspaces (libwnck) |
+| `plugin/` | The panel plugins: the light/dark switch, the workspaces (libwnck), and the centering space |
 | `icons/` | Omarchy's bar glyphs as symbolic SVGs: the panel switch, and `theme/` for the icon theme |
 | `tools/omarchy-icons.py` | Extracts them from the Nerd Fonts symbols font |
 | `tools/preview.py` | Off-screen previews |

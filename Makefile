@@ -4,6 +4,8 @@
 #   sudo make install     install system-wide (PREFIX=/usr/local)
 #   sudo make uninstall
 #   make preview          render the themes to build/preview/ (no install)
+#   make dev              use the themes straight from build/ and reload them
+#   make undev            go back to the installed themes
 
 PREFIX ?= /usr/local
 DATADIR = $(PREFIX)/share
@@ -34,6 +36,18 @@ $(PLUGIN): plugin/equinox-switch.c
 preview: themes
 	python3 tools/preview.py build/preview
 
+# ~/.local/share/themes takes precedence over an installed copy, so linking
+# build/themes there lets you iterate without root.
+dev: themes
+	@mkdir -p $(HOME)/.local/share/themes
+	@for t in $(THEMES); do ln -sfn $(CURDIR)/build/themes/$$t $(HOME)/.local/share/themes/$$t; done
+	bin/equinox-mode reload
+
+undev:
+	@for t in $(THEMES); do \
+	  if [ -L $(HOME)/.local/share/themes/$$t ]; then rm $(HOME)/.local/share/themes/$$t; fi; done
+	bin/equinox-mode reload
+
 install:
 	@test -d build/themes -a -f $(PLUGIN) || { echo "Run 'make' first."; exit 1; }
 	install -d $(DESTDIR)$(DATADIR)/themes
@@ -55,4 +69,4 @@ uninstall:
 clean:
 	rm -rf build
 
-.PHONY: all themes preview install uninstall clean
+.PHONY: all themes preview dev undev install uninstall clean

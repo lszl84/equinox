@@ -52,7 +52,7 @@ xfce4-panel --add=equinox-switch
 Click the panel button, or use the command line:
 
 ```sh
-equinox-mode light     # or: dark, toggle, status
+equinox-mode light     # or: dark, toggle, reload, status
 ```
 
 To switch with a key, bind `equinox-mode toggle` in **Settings → Keyboard →
@@ -113,6 +113,11 @@ To tweak the colors, edit `palettes/*.toml`, then run `make` and
 
 To check a change without installing it, run `make preview`. It renders a
 widget showcase and a mock window for both modes into `build/preview/`.
+
+To try a change on the desktop without root, run `make dev`. It links the
+built themes into `~/.local/share/themes`, which takes precedence over the
+installed copy, then reloads them. Run it again after each edit, and
+`make undev` when you're done.
 
 ## Layout
 

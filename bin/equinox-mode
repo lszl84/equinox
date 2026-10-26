@@ -35,6 +35,7 @@ Commands:
   light     Switch to light mode
   dark      Switch to dark mode
   toggle    Switch to the other mode
+  reload    Make running apps and xfwm4 reread the current themes
   status    Show the current mode and themes
   version   Print the version
 
@@ -131,6 +132,19 @@ switch_to() { # light|dark
   return 0
 }
 
+# GTK and xfwm4 only reread a theme when its name changes, so bounce through
+# the stock themes and back.
+cmd_reload() {
+  local gtk wm
+  gtk=$(get xsettings /Net/ThemeName)
+  wm=$(get xfwm4 /general/theme)
+  set_string xsettings /Net/ThemeName Adwaita
+  set_string xfwm4 /general/theme Default
+  sleep 0.3
+  set_string xsettings /Net/ThemeName "$gtk"
+  set_string xfwm4 /general/theme "$wm"
+}
+
 cmd_status() {
   echo "Mode:         $(current_mode)"
   echo "GTK theme:    $(get xsettings /Net/ThemeName)"
@@ -146,6 +160,7 @@ command -v xfconf-query >/dev/null || fail "xfconf-query not found; is this an X
 case "${1:-}" in
   light | dark) switch_to "$1" ;;
   toggle) switch_to "$([[ $(current_mode) == dark ]] && echo light || echo dark)" ;;
+  reload) cmd_reload ;;
   status) cmd_status ;;
   version | --version | -V) echo "equinox-mode $VERSION" ;;
   help | --help | -h) usage ;;

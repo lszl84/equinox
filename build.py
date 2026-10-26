@@ -32,9 +32,11 @@ SCALES = {"": 1, "-hdpi": 1.5, "-xhdpi": 2}
 TITLE_HEIGHT = 34
 CORNER_RADIUS = 10  # matches the GTK theme's CSD windows
 BORDER = 3          # sides and bottom, including the outline
-BUTTON_WIDTH = 28
-BUTTON_DIAMETER = 20
-GLYPH = 8
+# Buttons follow Firefox's: bare glyphs about 34px apart, with a rounded
+# highlight only on hover and press (red for close).
+BUTTON_WIDTH = 34
+HIGHLIGHT = (30, 24, 6)  # width, height, corner radius
+GLYPH = 9
 STROKE = 1.5
 
 
@@ -224,7 +226,7 @@ class Frame:
                   f'stroke-linecap="round" stroke-linejoin="round"')
         fill = f'fill="{hexc(color)}"'
         if kind == "close":
-            k = h * 0.85
+            k = h * 0.9
             return (f'<path d="M{cx - k} {cy - k} L{cx + k} {cy + k} '
                     f'M{cx + k} {cy - k} L{cx - k} {cy + k}" {stroke}/>')
         if kind == "maximize":
@@ -251,22 +253,24 @@ class Frame:
 
     def button(self, kind, state):
         p = self.p
-        fills = {
-            "active": (alpha(p.foreground, 0.08), p.dim),
+        looks = {  # state: (highlight, glyph color)
+            "active": (None, p.dim),
+            "inactive": (None, p.faint),
             "prelight": (alpha(p.foreground, 0.13), p.foreground),
             "pressed": (alpha(p.foreground, 0.19), p.foreground),
-            "inactive": (alpha(p.foreground, 0.05), p.faint),
         }
         if kind == "close":
-            fills["prelight"] = (p.red, p.red_fg)
-            fills["pressed"] = (p.red_active, p.red_fg)
-        circle, glyph = fills[state]
+            looks["prelight"] = (p.red, p.red_fg)
+            looks["pressed"] = (p.red_active, p.red_fg)
+        highlight, glyph = looks[state]
         cx = self.bw / 2
         cy = (self.o + self.h - self.sep) / 2
-        radius = BUTTON_DIAMETER * self.s / 2
-        body = (self.title_bg(self.bw)
-                + f'<circle cx="{cx}" cy="{cy}" r="{radius:.2f}" {svg_fill(circle)}/>'
-                + self.glyph(kind, cx, cy, glyph))
+        body = self.title_bg(self.bw)
+        if highlight is not None:
+            w, h, r = (v * self.s for v in HIGHLIGHT)
+            body += (f'<rect x="{cx - w / 2:.2f}" y="{cy - h / 2:.2f}" width="{w:.2f}" '
+                     f'height="{h:.2f}" rx="{r:.2f}" {svg_fill(highlight)}/>')
+        body += self.glyph(kind, cx, cy, glyph)
         return self.svg(self.bw, self.h, body)
 
     def themerc(self):

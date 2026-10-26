@@ -176,16 +176,22 @@ def xfwm4_mock(theme_dir, scale, client_bg, out):
         H = tl.get_height()
         blit(tl, x0, y0)
         blit(tr, x0 + W - tr.get_width(), y0)
-        blit(img(f"title-3-{state}"), x0 + tl.get_width(), y0, W - tl.get_width() - tr.get_width(), H)
+        # Buttons for the layout "|HMC", right-aligned the way xfwm4 places them.
         off = int(rc["button_offset"])
-        bx = x0 + off
-        blit(img(f"menu-{state}"), bx, y0)
-        right = [("hide", state), ("maximize", state), ("close", close_state)]
         bx = x0 + W - off
-        for kind, st in reversed(right):
+        buttons = []
+        for kind, st in reversed([("hide", state), ("maximize", state), ("close", close_state)]):
             pb = img(f"{kind}-{st}")
             bx -= pb.get_width()
-            blit(pb, bx, y0)
+            buttons.append((pb, bx))
+        # The title strip fills the rest; xfwm4 never draws it under a button.
+        title = img(f"title-3-{state}")
+        blit(title, x0 + tl.get_width(), y0, bx - x0 - tl.get_width(), H)
+        gap = off - tr.get_width()
+        if gap > 0:
+            blit(title, x0 + W - off, y0, gap, H)
+        for pb, x in buttons:
+            blit(pb, x, y0)
         left, rightb, bottom = img(f"left-{state}"), img(f"right-{state}"), img(f"bottom-{state}")
         B = left.get_width()
         blit(left, x0, y0 + H, B, C)

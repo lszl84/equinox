@@ -1,0 +1,156 @@
+#!/bin/bash
+
+# equinox-mode: switch Xfce between the Equinox light and dark themes.
+#
+# Sets the GTK theme, the matching xfwm4 theme for the window scaling factor
+# (Equinox-xhdpi at 2x), and the freedesktop color-scheme preference that
+# GTK4/libadwaita apps, Firefox and Chromium follow. The panel plugin runs
+# this when clicked; bind it to a key for a keyboard shortcut.
+
+set -euo pipefail
+
+VERSION="0.1.0"
+
+LIGHT_THEME="Equinox"
+DARK_THEME="Equinox-dark"
+# Leave empty to derive the xfwm4 theme from the GTK theme and the scale.
+LIGHT_WM_THEME=""
+DARK_WM_THEME=""
+# Leave empty to keep the icon theme as it is.
+LIGHT_ICON_THEME=""
+DARK_ICON_THEME=""
+
+# Overrides, e.g. LIGHT_THEME=Adwaita and DARK_THEME=Adwaita-dark.
+CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/equinox/mode.conf"
+# shellcheck source=/dev/null
+[[ -f $CONFIG ]] && source "$CONFIG"
+
+usage() {
+  cat <<EOF
+Usage: equinox-mode <command>
+
+Switch Xfce between the Equinox light and dark themes.
+
+Commands:
+  light     Switch to light mode
+  dark      Switch to dark mode
+  toggle    Switch to the other mode
+  status    Show the current mode and themes
+  version   Print the version
+
+Settings can be overridden in $CONFIG
+EOF
+}
+
+fail() {
+  echo "equinox-mode: $*" >&2
+  exit 1
+}
+
+get() { # channel property
+  xfconf-query -c "$1" -p "$2" 2>/dev/null || true
+}
+
+set_string() { # channel property value
+  xfconf-query -c "$1" -p "$2" -s "$3" 2>/dev/null ||
+    xfconf-query -c "$1" -p "$2" -n -t string -s "$3"
+}
+
+# Dark when the GTK theme is the configured dark one, or any theme whose name
+# ends in "dark" (Adwaita-dark, ...). The panel plugin uses the same rule.
+current_mode() {
+  local theme
+  theme=$(get xsettings /Net/ThemeName)
+  if [[ $theme == "$DARK_THEME" || ${theme,,} == *dark ]]; then
+    echo dark
+  else
+    echo light
+  fi
+}
+
+theme_has() { # theme file-inside-it
+  local dir dirs=("${XDG_DATA_HOME:-$HOME/.local/share}/themes" "$HOME/.themes")
+  local IFS=:
+  for dir in ${XDG_DATA_DIRS:-/usr/local/share:/usr/share}; do
+    dirs+=("${dir%/}/themes")
+  done
+  for dir in "${dirs[@]}"; do
+    [[ -e $dir/$1/$2 ]] && return 0
+  done
+  return 1
+}
+
+# The xfwm4 variant for the current scale: keep the -hdpi/-xhdpi suffix of
+# an Equinox theme already in use, otherwise pick it from the scaling factor.
+wm_suffix() {
+  local current scale
+  current=$(get xfwm4 /general/theme)
+  case $current in
+    "$DARK_THEME"*) echo "${current#"$DARK_THEME"}" && return ;;
+    "$LIGHT_THEME"*) echo "${current#"$LIGHT_THEME"}" && return ;;
+  esac
+  scale=$(get xsettings /Gdk/WindowScalingFactor)
+  if [[ ${scale:-1} -ge 2 ]]; then
+    echo "-xhdpi"
+  fi
+}
+
+wm_theme_for() { # gtk theme
+  local suffix
+  suffix=$(wm_suffix)
+  if theme_has "$1$suffix" xfwm4/themerc; then
+    echo "$1$suffix"
+  elif theme_has "$1" xfwm4/themerc; then
+    echo "$1"
+  fi
+}
+
+has_color_scheme() {
+  command -v gsettings >/dev/null &&
+    gsettings writable org.gnome.desktop.interface color-scheme >/dev/null 2>&1
+}
+
+switch_to() { # light|dark
+  local mode="$1" gtk wm icons scheme
+
+  if [[ $mode == dark ]]; then
+    gtk=$DARK_THEME wm=$DARK_WM_THEME icons=$DARK_ICON_THEME scheme=prefer-dark
+  else
+    gtk=$LIGHT_THEME wm=$LIGHT_WM_THEME icons=$LIGHT_ICON_THEME scheme=default
+  fi
+
+  theme_has "$gtk" gtk-3.0/gtk.css || fail "GTK theme '$gtk' is not installed"
+  [[ -n $wm ]] || wm=$(wm_theme_for "$gtk")
+
+  set_string xsettings /Net/ThemeName "$gtk"
+  [[ -n $wm ]] && set_string xfwm4 /general/theme "$wm"
+  [[ -n $icons ]] && set_string xsettings /Net/IconThemeName "$icons"
+  if has_color_scheme; then
+    gsettings set org.gnome.desktop.interface color-scheme "$scheme"
+  fi
+  return 0
+}
+
+cmd_status() {
+  echo "Mode:         $(current_mode)"
+  echo "GTK theme:    $(get xsettings /Net/ThemeName)"
+  echo "xfwm4 theme:  $(get xfwm4 /general/theme)"
+  echo "Icon theme:   $(get xsettings /Net/IconThemeName)"
+  if has_color_scheme; then
+    echo "Color scheme: $(gsettings get org.gnome.desktop.interface color-scheme)"
+  fi
+}
+
+command -v xfconf-query >/dev/null || fail "xfconf-query not found; is this an Xfce session?"
+
+case "${1:-}" in
+  light | dark) switch_to "$1" ;;
+  toggle) switch_to "$([[ $(current_mode) == dark ]] && echo light || echo dark)" ;;
+  status) cmd_status ;;
+  version | --version | -V) echo "equinox-mode $VERSION" ;;
+  help | --help | -h) usage ;;
+  *)
+    usage >&2
+    exit 1
+    ;;
+esac

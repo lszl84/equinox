@@ -1,0 +1,11 @@
+# Equinox dark palette. See light.toml.
+mode = "dark"
+background = "#1d1e21"
+foreground = "#e3e5ea"
+accent = "#3371dc"
+red = "#d13b47"
+green = "#4fbf7f"
+yellow = "#e2b04a"
+blue = "#6aa6ff"
+magenta = "#b392f0"
+cyan = "#4fc3d4"

@@ -1,0 +1,10 @@
+[Xfce Panel]
+Type=X-XFCE-PanelPlugin
+Encoding=UTF-8
+Name=Light/Dark Mode Switch
+Comment=Switch between the Equinox light and dark themes
+Icon=equinox-dark-symbolic
+X-XFCE-Module=equinox-switch
+X-XFCE-Internal=true
+X-XFCE-Unique=true
+X-XFCE-API=2.0

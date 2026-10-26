@@ -1,0 +1,13 @@
+# Equinox light palette. build.py derives everything else from these: the
+# GTK theme's surfaces, borders and fills, the xfwm4 frame, and a readable
+# text color for each filled surface (accent, red, green, yellow).
+mode = "light"
+background = "#f6f6f7"
+foreground = "#1f2328"
+accent = "#2563d9"
+red = "#d1343f"
+green = "#1f8a4c"
+yellow = "#b7791f"
+blue = "#2563d9"
+magenta = "#8250df"
+cyan = "#0f8299"

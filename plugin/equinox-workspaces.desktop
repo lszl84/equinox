@@ -1,0 +1,10 @@
+[Xfce Panel]
+Type=X-XFCE-PanelPlugin
+Encoding=UTF-8
+Name=Workspaces (Equinox)
+Comment=Workspace numbers, the way Omarchy's bar shows them
+Icon=equinox-workspace-active-symbolic
+X-XFCE-Module=equinox-workspaces
+X-XFCE-Internal=true
+X-XFCE-Unique=false
+X-XFCE-API=2.0

@@ -29,6 +29,8 @@ ICONS = {
     # Light/dark switch: Omarchy's clear-sky weather glyphs.
     "equinox-light-symbolic": (0xE30D, "weather panel, clear sky by day"),
     "equinox-dark-symbolic": (0xE32B, "weather panel, clear sky at night"),
+    # Workspaces plugin: Omarchy's mark for the active workspace.
+    "equinox-workspace-active-symbolic": (0xF14FB, "workspaces, the active one"),
     # nm-applet (indicator mode): Omarchy's network panel.
     "theme/nm-signal-00-symbolic": (0xF092F, "network panel, wifi 0 bars"),
     "theme/nm-signal-25-symbolic": (0xF091F, "network panel, wifi 1 bar"),

@@ -25,6 +25,9 @@ switch between them.
   "symbolic icons". nm-applet's own icons are 22x22 bitmaps, blurry on a
   HiDPI panel. See [icons/README.md](icons/README.md) for where each icon
   comes from.
+- **Workspaces** for the Xfce panel, the way Omarchy's bar shows them: a
+  number per workspace, a rounded square on the active one, and empty
+  workspaces at half opacity. Click a number to switch, or scroll over them.
 - **Light/dark switch** for the Xfce panel: Omarchy's sun in light mode and
   its moon in dark mode. Click it to switch the GTK theme, the window frames, and the
   color-scheme preference that GTK4/libadwaita apps, Firefox and Chromium
@@ -38,7 +41,7 @@ switch between them.
 
   ```sh
   sudo apt install librsvg2-bin adwaita-icon-theme build-essential pkg-config \
-    libxfce4panel-2.0-dev libxfce4ui-2-dev libxfconf-0-dev libgtk-3-dev
+    libxfce4panel-2.0-dev libxfce4ui-2-dev libxfconf-0-dev libgtk-3-dev libwnck-3-dev
   ```
 
 ## Install
@@ -55,7 +58,7 @@ This installs the themes, the `equinox-mode` command and the icons under
 `/usr`, the only places it looks. `sudo make uninstall` removes it all.
 
 Then add the switch to a panel: **Panel → Panel Preferences → Items → +**,
-then pick **Light/Dark Mode Switch**. Or, from a terminal:
+then pick **Light/Dark Mode Switch**, or **Workspaces (Equinox)**. Or, from a terminal:
 
 ```sh
 xfce4-panel -r                       # the panel only scans for plugins at startup
@@ -142,7 +145,7 @@ installed copy, then reloads them. Run it again after each edit, and
 | `gtk-3.0/base.css` | The GTK3 stylesheet |
 | `build.py` | Builds the GTK and xfwm4 themes into `build/themes/` |
 | `bin/equinox-mode` | Switches modes |
-| `plugin/` | The panel plugin |
+| `plugin/` | The panel plugins: the light/dark switch, and the workspaces (libwnck) |
 | `icons/` | Omarchy's bar glyphs as symbolic SVGs: the panel switch, and `theme/` for the icon theme |
 | `tools/omarchy-icons.py` | Extracts them from the Nerd Fonts symbols font |
 | `tools/preview.py` | Off-screen previews |

@@ -6,7 +6,7 @@ symbols font, using the fit Omarchy's `OpticalGlyph` applies: the tight ink box
 scaled so its longest side is 12px, centered by ink in a 16px canvas. So the
 icons share one optical size however the panel draws them.
 
-- `*.svg` go to `hicolor`, for the panel switch.
+- `*.svg` go to `hicolor`, for the panel plugins.
 - `theme/*.svg` go into the Equinox icon theme, under the names the Xfce
   panel plugins (volume, power manager), nm-applet and genmon ask for.
 
@@ -14,6 +14,7 @@ icons share one optical size however the panel draws them.
 | --- | --- | --- | --- |
 | `equinox-light-symbolic` | weather, clear sky by day | `weather-day_sunny` U+E30D | Weather Icons |
 | `equinox-dark-symbolic` | weather, clear sky at night | `weather-night_clear` U+E32B | Weather Icons |
+| `equinox-workspace-active-symbolic` | workspaces, the active one | `md-square_rounded` U+F14FB | Material Design Icons |
 | `nm-signal-00-symbolic` | wifi, 0 bars | `md-wifi_strength_outline` U+F092F | Material Design Icons |
 | `nm-signal-25-symbolic` | wifi, 1 bar | `md-wifi_strength_1` U+F091F | Material Design Icons |
 | `nm-signal-50-symbolic` | wifi, 2 bars | `md-wifi_strength_2` U+F0922 | Material Design Icons |

@@ -1,6 +1,6 @@
-# Equinox: GTK3 + xfwm4 themes and a light/dark panel switch for Xfce.
+# Equinox: GTK3 + xfwm4 themes, icons and panel plugins for Xfce.
 #
-#   make                  build the themes and the panel plugin
+#   make                  build the themes and the panel plugins
 #   sudo make install     install system-wide (PREFIX=/usr/local)
 #   sudo make uninstall
 #   make preview          render the themes to build/preview/ (no install)
@@ -14,24 +14,33 @@ DATADIR = $(PREFIX)/share
 PLUGIN_DIR ?= $(shell pkg-config --variable=libdir libxfce4panel-2.0)/xfce4/panel/plugins
 PLUGIN_DATA_DIR ?= $(shell pkg-config --variable=prefix libxfce4panel-2.0)/share/xfce4/panel/plugins
 
-PKGS = libxfce4panel-2.0 libxfconf-0 gtk+-3.0
+PKGS = libxfce4panel-2.0 libxfconf-0 gtk+-3.0 libwnck-3.0
 CFLAGS ?= -O2 -g
-CFLAGS += -Wall -Wextra -Wno-unused-parameter -fPIC $(shell pkg-config --cflags $(PKGS))
-LDLIBS = $(shell pkg-config --libs $(PKGS))
+CFLAGS += -Wall -Wextra -Wno-unused-parameter -fPIC
 
-PLUGIN = build/libequinox-switch.so
+SWITCH = build/libequinox-switch.so
+WORKSPACES = build/libequinox-workspaces.so
+PLUGINS = $(SWITCH) $(WORKSPACES)
 THEMES = Equinox Equinox-dark Equinox-hdpi Equinox-dark-hdpi Equinox-xhdpi Equinox-dark-xhdpi
 
-all: themes $(PLUGIN)
+all: themes $(PLUGINS)
 
 themes:
 	python3 build.py
 
-$(PLUGIN): plugin/equinox-switch.c
+check-deps:
 	@pkg-config --print-errors --exists $(PKGS) || { \
-	  echo "Install: libxfce4panel-2.0-dev libxfce4ui-2-dev libxfconf-0-dev libgtk-3-dev"; exit 1; }
+	  echo "Install: libxfce4panel-2.0-dev libxfce4ui-2-dev libxfconf-0-dev libgtk-3-dev libwnck-3-dev"; exit 1; }
 	@mkdir -p build
-	$(CC) $(CFLAGS) -DEQUINOX_MODE='"$(PREFIX)/bin/equinox-mode"' -shared -o $@ $< $(LDFLAGS) $(LDLIBS)
+
+$(SWITCH): plugin/equinox-switch.c | check-deps
+	$(CC) $(CFLAGS) $(shell pkg-config --cflags libxfce4panel-2.0 libxfconf-0 gtk+-3.0) \
+	  -DEQUINOX_MODE='"$(PREFIX)/bin/equinox-mode"' -shared -o $@ $< $(LDFLAGS) \
+	  $(shell pkg-config --libs libxfce4panel-2.0 libxfconf-0 gtk+-3.0)
+
+$(WORKSPACES): plugin/equinox-workspaces.c | check-deps
+	$(CC) $(CFLAGS) $(shell pkg-config --cflags libxfce4panel-2.0 libwnck-3.0) \
+	  -shared -o $@ $< $(LDFLAGS) $(shell pkg-config --libs libxfce4panel-2.0 libwnck-3.0)
 
 preview: themes
 	python3 tools/preview.py build/preview
@@ -52,13 +61,13 @@ undev:
 	bin/equinox-mode reload
 
 install:
-	@test -d build/themes -a -f $(PLUGIN) || { echo "Run 'make' first."; exit 1; }
+	@test -d build/themes -a -f $(SWITCH) -a -f $(WORKSPACES) || { echo "Run 'make' first."; exit 1; }
 	install -d $(DESTDIR)$(DATADIR)/themes
 	for t in $(THEMES); do rm -rf $(DESTDIR)$(DATADIR)/themes/$$t; done
 	cp -r build/themes/. $(DESTDIR)$(DATADIR)/themes/
 	install -Dm755 bin/equinox-mode $(DESTDIR)$(PREFIX)/bin/equinox-mode
-	install -Dm755 $(PLUGIN) $(DESTDIR)$(PLUGIN_DIR)/libequinox-switch.so
-	install -Dm644 plugin/equinox-switch.desktop $(DESTDIR)$(PLUGIN_DATA_DIR)/equinox-switch.desktop
+	install -Dm755 -t $(DESTDIR)$(PLUGIN_DIR) $(PLUGINS)
+	install -Dm644 -t $(DESTDIR)$(PLUGIN_DATA_DIR) plugin/equinox-switch.desktop plugin/equinox-workspaces.desktop
 	install -Dm644 -t $(DESTDIR)$(DATADIR)/icons/hicolor/scalable/status icons/*.svg
 	rm -rf $(DESTDIR)$(DATADIR)/icons/Equinox
 	cp -r build/icons/Equinox $(DESTDIR)$(DATADIR)/icons/
@@ -66,13 +75,14 @@ install:
 uninstall:
 	for t in $(THEMES); do rm -rf $(DESTDIR)$(DATADIR)/themes/$$t; done
 	rm -f $(DESTDIR)$(PREFIX)/bin/equinox-mode
-	rm -f $(DESTDIR)$(PLUGIN_DIR)/libequinox-switch.so
-	rm -f $(DESTDIR)$(PLUGIN_DATA_DIR)/equinox-switch.desktop
+	rm -f $(DESTDIR)$(PLUGIN_DIR)/libequinox-switch.so $(DESTDIR)$(PLUGIN_DIR)/libequinox-workspaces.so
+	rm -f $(DESTDIR)$(PLUGIN_DATA_DIR)/equinox-switch.desktop $(DESTDIR)$(PLUGIN_DATA_DIR)/equinox-workspaces.desktop
 	rm -f $(DESTDIR)$(DATADIR)/icons/hicolor/scalable/status/equinox-light-symbolic.svg
 	rm -f $(DESTDIR)$(DATADIR)/icons/hicolor/scalable/status/equinox-dark-symbolic.svg
+	rm -f $(DESTDIR)$(DATADIR)/icons/hicolor/scalable/status/equinox-workspace-active-symbolic.svg
 	rm -rf $(DESTDIR)$(DATADIR)/icons/Equinox
 
 clean:
 	rm -rf build
 
-.PHONY: all themes preview dev undev install uninstall clean
+.PHONY: all themes check-deps preview dev undev install uninstall clean

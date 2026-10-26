@@ -17,6 +17,11 @@ switch between them.
   theme's technique: a solid outline drawn with hard outer edges, so the cut
   keeps all of it, antialiased only towards the title bar. No theme draws a
   shadow; the only one is the compositor's own, from Window Manager Tweaks.
+- **Icon theme** (select **Equinox** in Settings → Appearance → Icons):
+  Adwaita, plus nm-applet's wifi icons redrawn as crisp symbolic signal
+  bars. nm-applet only ships them as 22x22 bitmaps, which are blurry on a
+  HiDPI panel. Run nm-applet with `--indicator`, and turn on the tray's
+  "symbolic icons", so the panel draws the bars in its own text color.
 - **Light/dark switch** for the Xfce panel: a sun in light mode, a moon in
   dark mode. Click it to switch the GTK theme, the window frames, and the
   color-scheme preference that GTK4/libadwaita apps, Firefox and Chromium
@@ -135,7 +140,7 @@ installed copy, then reloads them. Run it again after each edit, and
 | `build.py` | Builds the GTK and xfwm4 themes into `build/themes/` |
 | `bin/equinox-mode` | Switches modes |
 | `plugin/` | The panel plugin |
-| `icons/` | Sun and moon symbolic icons |
+| `icons/` | Sun and moon symbolic icons for the panel switch |
 | `tools/preview.py` | Off-screen previews |
 
 ## License

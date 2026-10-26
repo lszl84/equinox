@@ -9,6 +9,9 @@ Writes build/themes/:
   Equinox-hdpi/         xfwm4 at 1.5x, and Equinox-dark-hdpi
   Equinox-xhdpi/        xfwm4 at 2x, and Equinox-dark-xhdpi
 
+and build/icons/Equinox/, an icon theme that inherits Adwaita and replaces
+nm-applet's wifi icons (22x22 bitmaps) with crisp symbolic signal bars.
+
 xfwm4 doesn't scale its themes, so the window scaling factor picks the
 variant: Equinox-xhdpi for 2x. equinox-mode does that automatically.
 
@@ -26,6 +29,7 @@ NAME = "Equinox"  # Codename. The final name only needs changing here,
                   # in bin/equinox-mode and in the plugin.
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "build" / "themes"
+ICONS_OUT = ROOT / "build" / "icons"
 SCALES = {"": 1, "-hdpi": 1.5, "-xhdpi": 2}
 
 # xfwm4 frame geometry, in logical pixels (multiplied by the scale).
@@ -335,6 +339,45 @@ class Frame:
                 yield f"{kind}-{state}", self.button(kind, state)
 
 
+# ── Icons ────────────────────────────────────────────────────────────────
+
+ICON_INDEX = """[Icon Theme]
+Name={name}
+Comment=Adwaita with crisp {name} status icons
+Inherits=Adwaita,hicolor
+Directories=scalable/status
+
+[scalable/status]
+Size=16
+MinSize=8
+MaxSize=512
+Type=Scalable
+Context=Status
+"""
+
+
+def signal_bars(level):
+    """Wifi signal as four rising bars on the 16px symbolic grid, the old
+    nm-applet design: `level` bars lit, the rest at 30%. Symbolic, so GTK
+    paints it in the panel's text color like the other tray icons."""
+    rects = []
+    for i, height in enumerate((5, 8, 11, 14)):
+        dim = "" if i < level else ' opacity="0.3"'
+        rects.append(f'<rect x="{0.5 + 4 * i:g}" y="{15 - height}" width="3" height="{height}" rx="1"{dim}/>')
+    return ('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">'
+            '<g fill="#2e3436">' + "".join(rects) + "</g></svg>\n")
+
+
+def build_icons():
+    status = ICONS_OUT / NAME / "scalable" / "status"
+    status.mkdir(parents=True)
+    (ICONS_OUT / NAME / "index.theme").write_text(ICON_INDEX.format(name=NAME))
+    # nm-applet's names; secured networks get the same plain bars (no lock).
+    for level, strength in enumerate(("00", "25", "50", "75", "100")):
+        for suffix in ("", "-secure"):
+            (status / f"nm-signal-{strength}{suffix}-symbolic.svg").write_text(signal_bars(level))
+
+
 def rasterize(job):
     svg, png = job
     subprocess.run(["rsvg-convert", "-f", "png", "-o", str(png)],
@@ -362,7 +405,9 @@ def main():
     light = Palette(ROOT / "palettes" / "light.toml")
     dark = Palette(ROOT / "palettes" / "dark.toml")
     shutil.rmtree(OUT, ignore_errors=True)
+    shutil.rmtree(ICONS_OUT, ignore_errors=True)
     build_gtk(light, dark)
+    build_icons()
     count = build_xfwm4(light, dark)
     for pal in (light, dark):
         print(f"{pal.mode:5}  accent {hexc(pal.accent)} text {hexc(pal.accent_fg)} "

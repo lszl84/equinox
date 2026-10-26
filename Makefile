@@ -41,11 +41,14 @@ preview: themes
 dev: themes
 	@mkdir -p $(HOME)/.local/share/themes
 	@for t in $(THEMES); do ln -sfn $(CURDIR)/build/themes/$$t $(HOME)/.local/share/themes/$$t; done
+	@mkdir -p $(HOME)/.local/share/icons
+	@ln -sfn $(CURDIR)/build/icons/Equinox $(HOME)/.local/share/icons/Equinox
 	bin/equinox-mode reload
 
 undev:
 	@for t in $(THEMES); do \
 	  if [ -L $(HOME)/.local/share/themes/$$t ]; then rm $(HOME)/.local/share/themes/$$t; fi; done
+	@if [ -L $(HOME)/.local/share/icons/Equinox ]; then rm $(HOME)/.local/share/icons/Equinox; fi
 	bin/equinox-mode reload
 
 install:
@@ -57,6 +60,8 @@ install:
 	install -Dm755 $(PLUGIN) $(DESTDIR)$(PLUGIN_DIR)/libequinox-switch.so
 	install -Dm644 plugin/equinox-switch.desktop $(DESTDIR)$(PLUGIN_DATA_DIR)/equinox-switch.desktop
 	install -Dm644 -t $(DESTDIR)$(DATADIR)/icons/hicolor/scalable/status icons/*.svg
+	rm -rf $(DESTDIR)$(DATADIR)/icons/Equinox
+	cp -r build/icons/Equinox $(DESTDIR)$(DATADIR)/icons/
 
 uninstall:
 	for t in $(THEMES); do rm -rf $(DESTDIR)$(DATADIR)/themes/$$t; done
@@ -65,6 +70,7 @@ uninstall:
 	rm -f $(DESTDIR)$(PLUGIN_DATA_DIR)/equinox-switch.desktop
 	rm -f $(DESTDIR)$(DATADIR)/icons/hicolor/scalable/status/equinox-light-symbolic.svg
 	rm -f $(DESTDIR)$(DATADIR)/icons/hicolor/scalable/status/equinox-dark-symbolic.svg
+	rm -rf $(DESTDIR)$(DATADIR)/icons/Equinox
 
 clean:
 	rm -rf build
